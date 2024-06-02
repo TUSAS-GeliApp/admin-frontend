@@ -1,24 +1,26 @@
 import {BASEURL} from "../Utils/Common";
-const axios = require('axios');
+import axios from 'axios'; // Axios'u içe aktarın
+
 
 const url = BASEURL + "/ban/";
-
 export const banUser = (id) => {
-    axios.post(url + id, data)
-    .then(response => {
-        return response.data;
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-} 
+    return axios.post(url + id, {})
+        .then(response => {
+            return response.data;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            throw error;
+        });
+}
 
 export const unbanUser = (id) => {
-    axios.post(url + id + "/unban", data)
-    .then(response => {
-        return response.data;
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-} 
+    return axios.patch(url + id + "/unban", {})
+        .then(response => {
+            return response.data;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            throw error;
+        });
+}

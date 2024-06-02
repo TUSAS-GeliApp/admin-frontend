@@ -5,6 +5,7 @@ import React from "react";
 import FormDialog from "../Layouts/FormDialog";
 import ProgramForm from "../Components/Forms/ProgramForm";
 import EditRegisteredUsers from "../Layouts/EditRegisteredUsers";
+import { activeProgram, deactiveProgram, deleteUserFromProgram, getAllProgramsInfo, getProgram, getRegisteredUsers } from "../Services/Programs";
 
 export default function Programs() {
     const [filter, setFilter] = React.useState("");
@@ -12,22 +13,56 @@ export default function Programs() {
     const [selectedProgramInfo, setSelectedProgramInfo] = React.useState(null);
     const [editRegisteredUsersOpen, setEditRegisteredUsersOpen] = React.useState(false);
     const [programFormOpen, setProgramFormOpen] = React.useState(false);
-    
+    const [data, setData] = React.useState([])
+    const [refresh, setRefresh] = React.useState(false);
+
+    React.useEffect(() => {
+        const fetchData = async () => {    
+            const response = await getAllProgramsInfo();
+            
+            const newData = response.map((program) => (
+                {
+                    id: program.program_id,
+                    name: program.name,
+                    date: program.program_date,
+                    operations: createOperations(program.is_active, program.program_id)
+                }
+            ))
+            setData(newData);
+
+            
+        }
+        fetchData();
+        setProgramFormOpen(false);
+    }, [refresh])
+
     function handleActiveProgram(id, isActive) {
-        // Ban program logic
+        if(!isActive) {
+            activeProgram(id)  
+        } else {
+            deactiveProgram(id)
+        } 
+        setRefresh(!refresh)
     }
 
     function handleDeleteUserFromProgram(userId, programId) {
-
+        deleteUserFromProgram(userId, programId);
+        setEditRegisteredUsersOpen(false);
+        handleRegisteredUsers(programId)
+        setRefresh(!refresh)
+        
     }
 
-    function handleEditProgram(id) {
+    const handleEditProgram = async (id) => {
+        const response = await getProgram(id);
+        const [day, month, year] = response[0].program_date.split('.');
+        const formattedDate = `${year}-${month}-${day}`;
         const programInfo = {
-            programName: "Örnek Program",
-            programContent: "Bu bir örnek program içeriğidir. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-            programDate: "2024-05-30",
-            location: "İstanbul, Türkiye",
-            programLink: "https://ornekprogram.com",
+            programName: response[0].name,
+            programContent: response[0].content,
+            programDate: formattedDate,
+            location: response[0].location,
+            programLink: response[0].program_link,
             programPhoto: "https://via.placeholder.com/300",
           };
           
@@ -36,7 +71,7 @@ export default function Programs() {
         setProgramFormOpen(true);
     }
 
-    function handleRegisteredUsers(programId) {
+    const handleRegisteredUsers = async (programId) => {
         const createDeleteOperation = (userId) => {
             return (
                 <ButtonGroup variant="outlined" aria-label="Basic button group">
@@ -48,78 +83,17 @@ export default function Programs() {
             )
         }
 
-        const registeredUsersInfo = [
+        const response = await getRegisteredUsers(programId);
+        console.log(response)
+        const registeredUsersInfo = response.map((user) => (
             {
-                id: 1,
-                name: 'Murat Can',
-                surname: 'Bastug',
-                mail: "bastug@gmail.com",
-                operations: createDeleteOperation(1),
-            },
-            {
-                id: 2,
-                name: 'Murat Can filt',
-                surname: 'Bastug',
-                mail: "bastug@gmail.com",
-                operations: createDeleteOperation(2),
-            },
-            {
-                id: 3,
-                name: 'Murat Can',
-                surname: 'Bastug',
-                mail: "bastug@gmail.com",
-                operations: createDeleteOperation(1),
-            },
-            {
-                id: 4,
-                name: 'Murat Can filt',
-                surname: 'Bastug',
-                mail: "bastug@gmail.com",
-                operations: createDeleteOperation(2),
-            },
-            {
-                id: 5,
-                name: 'Murat Can',
-                surname: 'Bastug',
-                mail: "bastug@gmail.com",
-                operations: createDeleteOperation(1),
-            },
-            {
-                id: 6,
-                name: 'Murat Can filt',
-                surname: 'Bastug',
-                mail: "bastug@gmail.com",
-                operations: createDeleteOperation(2),
-            },
-            {
-                id: 7,
-                name: 'Murat Can',
-                surname: 'Bastug',
-                mail: "bastug@gmail.com",
-                operations: createDeleteOperation(1),
-            },
-            {
-                id: 8,
-                name: 'Murat Can filt',
-                surname: 'Bastug',
-                mail: "bastug@gmail.com",
-                operations: createDeleteOperation(2),
-            },
-            {
-                id: 9,
-                name: 'Murat Can',
-                surname: 'Bastug',
-                mail: "bastug@gmail.com",
-                operations: createDeleteOperation(1),
-            },
-            {
-                id: 10,
-                name: 'Murat Can filt',
-                surname: 'Bastug',
-                mail: "bastug@gmail.com",
-                operations: createDeleteOperation(2),
-            },
-        ]
+                id: user.user_id,
+                name: user.name,
+                surname: user.surname,
+                mail: user.email,
+                operations: createDeleteOperation(user.user_id)
+            }
+        ))
 
         setSelectedProgramUsers(registeredUsersInfo);
         setEditRegisteredUsersOpen(true);
@@ -145,27 +119,6 @@ export default function Programs() {
             </ButtonGroup>
         );
     }
-
-    const data = [
-        {
-            id: 1,
-            name: 'Program 1',
-            date: "01.01.2015",
-            operations: createOperations(false, 1),
-        },
-        {
-            id: 2,
-            name: 'Program 2',
-            date: "01.01.2015",
-            operations: createOperations(false, 1),
-        },
-        {
-            id: 3,
-            name: 'Program 3',
-            date: "01.01.2015",
-            operations: createOperations(false, 1),
-        }
-    ];
 
     const headers = [
         {
