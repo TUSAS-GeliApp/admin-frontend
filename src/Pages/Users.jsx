@@ -5,42 +5,62 @@ import React from "react";
 import FormDialog from "../Layouts/FormDialog";
 import UserForm from "../Components/Forms/UserForm";
 import { banUser, unbanUser } from "../Services/Ban";
-import { getUserInfo } from "../Services/User";
+import { getAllUsers, getUserImage, getUserInfo } from "../Services/User";
 
 export default function Users() {
     const [filter, setFilter] = React.useState("");
     const [userFormOpen, setUserFormOpen] = React.useState(false);
     const [selectedUserInfo, setSelectedUserInfo] = React.useState(null);
+    const [data, setData] = React.useState([]);
+    const [refresh, setRefresh] = React.useState(false);
+
+    React.useEffect(() => {
+        const fetchData = async () => {    
+            const response = await getAllUsers();
+            const newData = response.map((user) => (
+                {
+                    id: user.user_id,
+                    name: user.name,
+                    surname: user.surname,
+                    mail: user.email,
+                    is_tusas: user.is_tusas ? "Evet" : "Hayır",
+                    operations: createOperations(user.is_banned, user.user_id)
+                }
+            ))
+            setData(newData);
+        }
+        fetchData();
+        setUserFormOpen(false);
+    }, [refresh])
 
     function handleBannUser(id, isBanned) {
-        // if(isBanned) {
-        //     unbanUser(id);   
-        // } else {
-        //     banUser(id);
-        // }
+        if(isBanned) {
+            unbanUser(id)  
+        } else {
+            banUser(id)
+        } 
+        setRefresh(!refresh)
     }
 
-    function handleEditUser(id) {
-        const userInfo = {
-            name: 'John',
-            surname: 'Doe',
-            mail: 'john.doe@example.com',
-            companyOrUniversity: 'Example Company',
-            job: 'Software Developer',
-            isTusas: 'Evet',
-            phone: '+1234567890',
-            location: 'New York',
-            instagram: 'https://www.instagram.com/johndoe/',
-            twitter: 'https://twitter.com/johndoe/',
-            linkedin: 'https://www.linkedin.com/in/johndoe/',
-            facebook: 'https://www.facebook.com/johndoe/',
-            profilePhoto: 'https://via.placeholder.com/200', // Örnek bir profil fotoğrafı URL'si
-          };
+    async function handleEditUser(id) {
+        const conpanyOrUniversities= ["Hacettepe University","Tusas","Odtü"]
+        const userInfo = await getUserInfo(id);
+        
+        const userImage = await getUserImage(userInfo.email);
+        const utf8Bytes = new TextEncoder().encode(userImage);
 
-        //const userInfo = getUserInfo(id);
+        const base64String = btoa(String.fromCharCode.apply(null, utf8Bytes));
 
+        const imageUrl = `data:image/png;base64,${base64String}`;
+        userInfo.companyOrUniversity =  conpanyOrUniversities[Math.floor(Math.random*conpanyOrUniversities.length)];
+        userInfo.isTusas = userInfo.is_tusas ? "Evet":"Hayır";
+
+        delete userInfo.is_tusas;
+        userInfo.profilePhoto = imageUrl;
+        
         setSelectedUserInfo(userInfo);
         setUserFormOpen(true);
+        
     }
 
     const createOperations = (isBanned, id) => {
@@ -57,40 +77,7 @@ export default function Users() {
         );
     }
 
-    const data = [
-        {
-            id: 1,
-            name: 'Murat Can',
-            surname: 'Bastug',
-            mail: "bastug@gmail.com",
-            is_tusas: "Evet",
-            operations: createOperations(false, 1),
-        },
-        {
-            id: 2,
-            name: 'Murat Can',
-            surname: 'Bastug',
-            mail: "bastug@gmail.com",
-            is_tusas: "Evet",
-            operations: createOperations(false, 1),
-        },
-        {
-            id: 3,
-            name: 'Murat Can filt',
-            surname: 'Bastug',
-            mail: "bastug@gmail.com",
-            is_tusas: "Hayır",
-            operations: createOperations(false, 1),
-        },
-        {
-            id: 4,
-            name: 'Murat Can filt',
-            surname: 'Bastug',
-            mail: "bastug@gmail.com",
-            is_tusas: "Hayır",
-            operations: createOperations(false, 1),
-        }
-    ];
+  
 
     const headers = [
         {
@@ -138,7 +125,7 @@ export default function Users() {
                 open={userFormOpen} 
                 setOpen={setUserFormOpen}  
                 dialogTitle={selectedUserInfo ? "Kullanıcı Bilgilerini Düzenle" : "Yeni Kullanıcı Oluştur"} 
-                dialogContent={<UserForm selectedUserInfo={selectedUserInfo}/>}
+                dialogContent={<UserForm selectedUserInfo={selectedUserInfo} refresh = {refresh} setRefresh = {setRefresh}/>}
                 contentText={
                     selectedUserInfo ? "Aşağıdaki formdan kullanıcı bilgilerini düzenleyebilirsiniz." :
                     "Yeni bir kullanıcı oluşturmak için lütfen aşağıdaki formu doldurunuz."

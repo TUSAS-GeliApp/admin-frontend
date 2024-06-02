@@ -7,9 +7,8 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 
 const RegisteredUsers = (props) => {
-    const { headers, rows, addMethod } = props;
+    const { headers, rows, addMethod, selected, setSelected } = props;
 
-    const [selected, setSelected] = useState([]);
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -59,11 +58,12 @@ const RegisteredUsers = (props) => {
     const isSelected = (id) => selected.indexOf(id) !== -1;
 
     const filteredRows = rows.filter((row) => {
+        console.log(row)
         return(
             row.name.toLowerCase().includes(search.toLowerCase()) || 
             row.surname.toLowerCase().includes(search.toLowerCase()) ||
             row.isTusas.toLowerCase().includes(search.toLowerCase()) ||
-            (row.programs ? row.programs.join(' ').toLowerCase().includes(search.toLowerCase()) : null)
+            (row.programs && row.programs.length > 0 ? row.programs.join(' ').toLowerCase().includes(search.toLowerCase()) : null)
         ) 
     });
 

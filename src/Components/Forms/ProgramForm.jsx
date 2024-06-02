@@ -40,8 +40,7 @@ const ProgramForm = ({ selectedProgramInfo }) => {
       programContent &&
       programDate &&
       location &&
-      programLink &&
-      programPhoto
+      programLink 
     );
   };
 

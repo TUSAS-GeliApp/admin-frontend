@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { TextField, Button, Container, MenuItem, Paper, Grid, Divider, Typography } from '@mui/material';
 import { useCommonStyles } from '../../Utils/Styles';
+import { addUser } from '../../Services/User';
 
-const UserForm = ({ selectedUserInfo }) => {
+const UserForm = ({ selectedUserInfo, refresh, setRefresh }) => {
   const commonStyles = useCommonStyles();
   const [userName, setUserName] = useState(selectedUserInfo ? selectedUserInfo.name : '');
   const [userSurname, setUserSurname] = useState(selectedUserInfo ? selectedUserInfo.surname : '');
-  const [email, setEmail] = useState(selectedUserInfo ? selectedUserInfo.mail : '');
+  const [email, setEmail] = useState(selectedUserInfo ? selectedUserInfo.email : '');
   const [job, setJob] = useState(selectedUserInfo ? selectedUserInfo.job : '');
   const [isTusas, setIsTusas] = useState(selectedUserInfo ? selectedUserInfo.isTusas : '');
   const [phone, setPhone] = useState(selectedUserInfo ? selectedUserInfo.phone : '');
@@ -28,7 +29,22 @@ const UserForm = ({ selectedUserInfo }) => {
     }
   };
 
-  const handleEditUser = () => {
+  const handleEditUser = async () => {
+    await addUser
+    ({
+        name:userName,
+        surname:userSurname,
+        email:email,
+        phone:phone,
+        job:job,
+        is_banned: false,
+        is_tusas:isTusas === "Evet" ? true : false,
+        location:location,
+        instagram:instagram,
+        twitter:twitter,
+        linkedin:linkedin,
+        facebook: facebook
+    })
     console.log('Kullanıcı bilgileri düzenlendi:', {
       userName,
       userSurname,
@@ -43,7 +59,9 @@ const UserForm = ({ selectedUserInfo }) => {
       facebook,
       profilePhoto,
     });
+    setRefresh(!refresh);
   };
+
 
   const isFormValid = () => {
     return (
@@ -57,8 +75,7 @@ const UserForm = ({ selectedUserInfo }) => {
       instagram &&
       twitter &&
       linkedin &&
-      facebook &&
-      profilePhoto
+      facebook
     );
   };
 
@@ -220,7 +237,7 @@ const UserForm = ({ selectedUserInfo }) => {
         onClick={handleEditUser}
         disabled={!isFormValid()}
       >
-        Kullanıcıyı Düzenle
+        {selectedUserInfo ? "Kullanıcıyı Düzenle" : "Kullanıcıyı Ekle"}
       </Button>
     </Container>
   );
